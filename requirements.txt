@@ -92,7 +92,6 @@ python-dotenv==1.0.1
 python-i18n==0.3.9
 python-sql==1.5.1
 pytz==2024.1
-pywin32==306
 PyYAML==6.0.2
 pyzmq==26.1.0
 regex==2024.7.24
