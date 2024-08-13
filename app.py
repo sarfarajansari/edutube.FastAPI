@@ -51,6 +51,7 @@ def generate_html_content(body: dict):
     content =  [content for content in video["concept"] if content.get('concept description') == topic or content.get('description') == topic]
 
     if len(content) == 0:
+        print("Content not found")
         raise HTTPException(status_code=404, detail="Content not found")
     
 
@@ -167,6 +168,6 @@ def get_subjects():
 # Run the application
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app)
+    uvicorn.run(app,host="0.0.0.0")
 
 
