@@ -165,8 +165,8 @@ def get_subjects():
 
 
 # Run the application
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="localhost", port=8000,)
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app)
 
 
