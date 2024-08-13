@@ -18,6 +18,8 @@ def fetch_youtube_video(inputData) -> dict[str, str]:
 
     api_key = os.getenv("YT_API_KEY")
 
+    print("API KEY", api_key)
+
     url = f"{API_URL}search?part=snippet&type=video&maxResults={max_results}&q={search_query}&key={api_key}&order=viewCount&regionCode=IN"
 
     if inputData.get("nextPageToken"):
@@ -25,18 +27,24 @@ def fetch_youtube_video(inputData) -> dict[str, str]:
 
     data = requests.get(url).json()
     result = inputData.get("result") or []
-    for item in data["items"]:
+
+
+    videoItems = data.get("items") or []
+
+    for item in videoItems:
         if item["id"].get("videoId"):
             try:
                 transcript = str(YouTubeTranscriptApi.get_transcript(
                     item["id"].get("videoId")))
+                
+
                 if transcript:
                     result.append({
                         "title": item["snippet"]["title"],
                         "description": item["snippet"]["description"],
                         "thumbnail": item["snippet"]["thumbnails"]["high"]["url"],
                         "videoId": item["id"].get("videoId"),
-                        "transcript": str(YouTubeTranscriptApi.get_transcript(item["id"].get("videoId"))),
+                        "transcript": transcript,
                     })
             except Exception as e:
                 print("Transcript not found", item["id"].get("videoId"))
