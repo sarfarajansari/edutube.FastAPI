@@ -35,7 +35,7 @@ def html_content(videoId: str):
 
     return list(data)
 
-@app.get('transcript/{videoId}')
+@app.get('/transcript/{videoId}')
 def get_transcript(videoId:str):
     transcript = YouTubeTranscriptApi.get_transcript(videoId)
     return transcript
