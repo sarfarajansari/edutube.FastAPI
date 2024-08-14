@@ -37,8 +37,12 @@ def html_content(videoId: str):
 
 @app.get('/transcript/{videoId}')
 def get_transcript(videoId:str):
-    transcript = YouTubeTranscriptApi.get_transcript(videoId)
-    return transcript
+    try:
+        transcript = YouTubeTranscriptApi.get_transcript(videoId)
+        return transcript
+    except Exception as e:
+        # print(e)
+        return {"error": str(e)}
 @app.post("/generatehtmlcontent")
 def generate_html_content(body: dict):
     topic = body.get("topic")
@@ -102,56 +106,60 @@ def get_videos(subject: str):
 
 @app.post("/generatevideo")
 def generate_video(body:dict):
-    subject=body.get('subject')
-    if not subject:
-        return HTTPException(status_code=400, detail="Subject missing")
+    try:
+        subject=body.get('subject')
+        if not subject:
+            return HTTPException(status_code=400, detail="Subject missing")
 
-    subjectData = db["subject"].find_one({"fields": subject})
+        subjectData = db["subject"].find_one({"fields": subject})
 
-    if not subjectData:
-        return HTTPException(status_code=400, detail="Invalid topic")
+        if not subjectData:
+            return HTTPException(status_code=400, detail="Invalid topic")
 
-    print("generating")
+        print("generating")
 
-    next_page_token_data = db["page_token"].find_one({"subject":subject})
+        next_page_token_data = db["page_token"].find_one({"subject":subject})
 
-    if next_page_token_data:
-        next_page_token = next_page_token_data['token']
-    else:
-        next_page_token=None
+        if next_page_token_data:
+            next_page_token = next_page_token_data['token']
+        else:
+            next_page_token=None
 
-    generatedData = generateVideos(subject,1,next_page_token)
-    if not generatedData:
-        return HTTPException(status_code=400, detail="Rate limit exists, please try again later")
-    
+        generatedData = generateVideos(subject,1,next_page_token)
+        if not generatedData:
+            return HTTPException(status_code=400, detail="Rate limit exists, please try again later")
+        
 
-    videos = generatedData.get('videos')
-    next_page_token = generatedData.get("nextPageToken")
+        videos = generatedData.get('videos')
+        next_page_token = generatedData.get("nextPageToken")
 
-    if len(videos)==0:
-        return HTTPException(status_code=500, detail="Could not generate video")
-
-
-
-
-    db['page_token'].update_one({'subject':subject},{'$set':{'token':next_page_token}},True)
-    db["videos"].insert_many(videos)
-
-    videos = list(videos)
-    for item in videos:
-        if "_id" in item:
-            del item["_id"] 
-
-        if "transcript" in item:
-            del item["transcript"]
+        if len(videos)==0:
+            return HTTPException(status_code=500, detail="Could not generate video")
 
 
 
-    print("Number of videos generated", len(videos))
 
-    return {
-        "videos": videos,
-    }
+        db['page_token'].update_one({'subject':subject},{'$set':{'token':next_page_token}},True)
+        db["videos"].insert_many(videos)
+
+        videos = list(videos)
+        for item in videos:
+            if "_id" in item:
+                del item["_id"] 
+
+            if "transcript" in item:
+                del item["transcript"]
+
+
+
+        print("Number of videos generated", len(videos))
+
+        return {
+            "videos": videos,
+        }
+    except Exception as e:
+        print(e)
+        return {"error": str(e)}
 
 
 @app.get("/subjects")

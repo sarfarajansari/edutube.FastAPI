@@ -11,7 +11,7 @@ load_dotenv()
 API_URL = "https://www.googleapis.com/youtube/v3/"
 
 
-def fetch_youtube_video(inputData) -> dict[str, str]:
+def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
     search_query = inputData["search_query"]
     max_results = inputData["max_results"]
     print("page number", inputData.get("pageNumber"))
@@ -58,10 +58,13 @@ def fetch_youtube_video(inputData) -> dict[str, str]:
             break
 
     if len(result) == 0:
-        inputData["nextPageToken"] = data.get("nextPageToken")
-        inputData["pageNumber"] = (inputData.get("pageNumber")or 0 ) + 1
-        inputData["result"] = result
-        return fetch_youtube_video(inputData)
+        if attempt < 10:
+            inputData["nextPageToken"] = data.get("nextPageToken")
+            inputData["pageNumber"] = (inputData.get("pageNumber")or 0 ) + 1
+            inputData["result"] = result
+            return fetch_youtube_video(inputData,attempt+1)
+        
+        raise Exception("No videos with transcript found")
     
     data["videos"] = result
 
@@ -102,4 +105,4 @@ def generateVideos(search_query: str, max_results: int = 1,nextPageToken:str=Non
     
     if attempt < 3:
         return generateVideos(search_query, max_results, nextPageToken,attempt+1)
-    return None
+    raise Exception("No videos found")
