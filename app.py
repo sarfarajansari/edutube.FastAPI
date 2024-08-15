@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from db import db
 from generateContent import generateHtmlContent
 from generateVideo import generateVideos
-from youtube_transcript_api import YouTubeTranscriptApi
+from transcript import get_transcript
 app = FastAPI()
 
 
@@ -36,10 +36,9 @@ def html_content(videoId: str):
     return list(data)
 
 @app.get('/transcript/{videoId}')
-def get_transcript(videoId:str):
+def get_transcript_api(videoId:str):
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(videoId)
-        return transcript
+        return get_transcript(videoId)
     except Exception as e:
         # print(e)
         return {"error": str(e)}

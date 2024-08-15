@@ -7,6 +7,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import requests
 import os
 from dotenv import load_dotenv
+from transcript import get_transcript
 load_dotenv()
 API_URL = "https://www.googleapis.com/youtube/v3/"
 
@@ -37,8 +38,8 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
     for item in videoItems:
         if item["id"].get("videoId"):
             try:
-                transcript = str(YouTubeTranscriptApi.get_transcript(
-                    item["id"].get("videoId")))
+                transcript = str(get_transcript(item["id"].get("videoId")))
+                    
                 
 
                 if transcript:
