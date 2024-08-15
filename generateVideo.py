@@ -107,3 +107,16 @@ def generateVideos(search_query: str, max_results: int = 15,nextPageToken:str=No
     if attempt < 3:
         return generateVideos(search_query, max_results, nextPageToken,attempt+1)
     raise Exception("No videos found")
+
+
+
+
+fetch_youtube_video(
+    {
+    "search_query": "python",
+    "max_results": 15,
+    "nextPageToken": None,
+    "pageNumber": 1,
+    
+    }
+)
