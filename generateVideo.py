@@ -93,7 +93,7 @@ def generateVideos(search_query: str, max_results: int = 15,nextPageToken:str=No
             item['concept'] = json.loads(res)
             if len(item['concept']) == 0:
                 continue
-            item['topic'] = search_query
+            item['query'] = search_query
             result.append(item)
         except:
             pass
