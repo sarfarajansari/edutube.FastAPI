@@ -123,8 +123,8 @@ def generate_video(body:dict):
             next_page_token = next_page_token_data['token']
         else:
             next_page_token=None
-
-        generatedData = generateVideos(f"Educational video on {subject} | {course_name}",1,next_page_token,course_name)
+        query = f'"{subject}" AND "{course_name}" AND ("tutorial" OR "lesson" OR "lecture" OR "Explained" OR "one shot" OR "chapter" OR "learn")'
+        generatedData = generateVideos(query,8,next_page_token,course_name)
         if not generatedData:
             return HTTPException(status_code=400, detail="Rate limit exists, please try again later")
         
@@ -139,9 +139,17 @@ def generate_video(body:dict):
 
 
         db['page_token'].update_one({'subject':subject},{'$set':{'token':next_page_token}},True)
-        db["videos"].insert_many(videos)
 
-        videos = list(videos)
+        ids = [video['videoId'] for video in videos]
+        existing_videos = db["videos"].find({'videoId': {'$in': ids}}, {'videoId': 1})
+        existing_videos = [video['videoId'] for video in existing_videos]
+        
+        filtered_videos = [video for video in videos if video['videoId'] not in existing_videos]
+
+        db["videos"].insert_many(filtered_videos)
+            
+
+        videos = list(filtered_videos)
         for item in videos:
             if "_id" in item:
                 del item["_id"] 

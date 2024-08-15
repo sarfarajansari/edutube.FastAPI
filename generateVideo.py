@@ -19,7 +19,7 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
 
     api_key = os.getenv("YT_API_KEY")
 
-    print("API KEY", api_key,inputData.get("nextPageToken"))
+    print(inputData.get("nextPageToken"),search_query,max_results)
 
     url = f"{API_URL}search?part=snippet&type=video&maxResults={max_results}&q={search_query}&key={api_key}&order=viewCount&regionCode=IN"
 
@@ -33,7 +33,7 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
 
     videoItems = data.get("items") or []
 
-    print("Video Items", videoItems)
+    print("Video Items", len(videoItems))
 
     for item in videoItems:
         if item["id"].get("videoId"):
