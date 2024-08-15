@@ -5,9 +5,11 @@ def get_transcript(videoId):
     method = int(input("Enter the method to use: "))
 
     if method == 1:
+        print("Using Tactiq")
         return tactiq.get_transcript(videoId)
     
     elif method == 2:
+        print("Using Whisp")
         return whisp.get_transcript(videoId)
     
 

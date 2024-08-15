@@ -40,15 +40,15 @@ def get_audio_file(id):
 
     for format in formats:
         if "audio" in format.get('mimeType'):
-            if format.get('audioQuality') == 'AUDIO_QUALITY_MEDIUM':
+            if format.get('audioQuality') == 'AUDIO_QUALITY_LOW':
                 audios.insert(0, format.get('url'))
+                break
 
             else:
                 audios.append(format.get('url'))
-
-    
     if len(audios) == 0:
         return None
+    
     
     return audios[0]
     
@@ -64,6 +64,7 @@ def download_audio(url, save_path):
 def transcribe_audio(file_url):
     file_path = f"audio{random.randint(0,100)}.mp3"
     download_audio(file_url, file_path)
+    print('audio downloaded')
     client = OpenAI()
     
     with open(file_path, "rb") as audio_file:
@@ -73,8 +74,12 @@ def transcribe_audio(file_url):
             response_format='verbose_json'
         )
         audio_file.close()
+
+    print('audio transcripted')
       
     os.remove(file_path)
+
+    print('audio deleted')
     return transcription
 
 
@@ -85,6 +90,7 @@ def transcribe_audio(file_url):
 
 def get_transcript(videoId):
     audi_file = get_audio_file(videoId)
+    print('audio url created')
 
     if not audi_file:
         raise Exception("Audio file not found")
