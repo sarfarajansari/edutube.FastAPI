@@ -124,7 +124,7 @@ def generate_video(body:dict):
         else:
             next_page_token=None
         query = f'"{subject}" AND "{course_name}" AND ("tutorial" OR "lesson" OR "lecture" OR "Explained" OR "one shot" OR "chapter" OR "learn")'
-        generatedData = generateVideos(query,8,next_page_token,course_name)
+        generatedData = generateVideos(query,4,next_page_token,course_name)
         if not generatedData:
             return HTTPException(status_code=400, detail="Rate limit exists, please try again later")
         
@@ -145,6 +145,10 @@ def generate_video(body:dict):
         existing_videos = [video['videoId'] for video in existing_videos]
         
         filtered_videos = [video for video in videos if video['videoId'] not in existing_videos]
+
+        for v in filtered_videos:
+            v['topic'] = subject
+            v['subject'] = course_name
 
         db["videos"].insert_many(filtered_videos)
             
