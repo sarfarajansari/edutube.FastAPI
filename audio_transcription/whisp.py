@@ -55,6 +55,7 @@ def get_audio_file(id):
     
 
 def download_audio(url, save_path):
+    print(url)
     response = requests.get(url)
     with open(save_path, 'wb') as file:
         file.write(response.content)
