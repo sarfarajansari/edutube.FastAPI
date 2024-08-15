@@ -115,7 +115,7 @@ def generate_video(body:dict):
         if not subjectData:
             return HTTPException(status_code=400, detail="Invalid topic")
 
-        print("generating")
+        course_name = subjectData.get("name") or ""
 
         next_page_token_data = db["page_token"].find_one({"subject":subject})
 
@@ -124,7 +124,7 @@ def generate_video(body:dict):
         else:
             next_page_token=None
 
-        generatedData = generateVideos(subject,1,next_page_token)
+        generatedData = generateVideos(f"Educational video on {subject} | {course_name}",1,next_page_token,course_name)
         if not generatedData:
             return HTTPException(status_code=400, detail="Rate limit exists, please try again later")
         
