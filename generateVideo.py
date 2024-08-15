@@ -55,7 +55,7 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
                 continue
 
 
-        if len(result)> max_results:
+        if len(result)> 0:
             break
 
     if len(result) == 0:
@@ -75,9 +75,9 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
     }
 
 
-def generateVideos(search_query: str, max_results: int = 1,nextPageToken:str=None,attempt=0) -> list[dict[str, str]]:
+def generateVideos(search_query: str, max_results: int = 15,nextPageToken:str=None,attempt=0) -> list[dict[str, str]]:
     data = fetch_youtube_video(
-        {"search_query": f"Educational video on {search_query}", "max_results": max_results,"nextPageToken": nextPageToken,"pageNumber":1})
+        {"search_query": search_query, "max_results": max_results,"nextPageToken": nextPageToken,"pageNumber":1})
     llm = ChatOpenAI(temperature=0.2, model="gpt-4o")
 
 
