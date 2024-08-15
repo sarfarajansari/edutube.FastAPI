@@ -35,38 +35,77 @@ def get_audio_file(id):
         return None
 
 
-    audios = []
+    audioList = []
+
+    
 
 
-    for format in formats:
+    for format in reversed(formats):
         if "audio" in format.get('mimeType'):
             if format.get('audioQuality') == 'AUDIO_QUALITY_LOW':
-                audios.insert(0, format.get('url'))
+                audioList.insert(0, format.get('url'))
                 break
 
             else:
-                audios.append(format.get('url'))
-    if len(audios) == 0:
+                audioList.append(format.get('url'))
+    if len(audioList) == 0:
         return None
     
     
-    return audios[0]
+    return audioList
     
     
 
-def download_audio(url, save_path):
-    print(url)
-    response = requests.get(url)
-    with open(save_path, 'wb') as file:
-        file.write(response.content)
-        file.close()
+APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiDf5z0iyNYpj_UGw6f6ImdgsC5E7iN_CAy1Ox_I3XZ4pwHW8P8I-t5dpQtsiycO_b9w/exec'
 
 
-def transcribe_audio(file_url):
+def save_base64_to_file(base64_string, file_path):
+    print('saving base64 to file')
+    import base64
+    try:
+        # Decode the Base64 string
+        file_data = base64.b64decode(base64_string)
+        
+        # Write the decoded data to a file
+        with open(file_path, 'wb') as file:
+            file.write(file_data)
+        
+        print(f"File saved successfully as: {file_path}")
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+def download_audio(audioList, save_path):
+
+
+    for url in audioList:
+        print(url)
+        try:
+            response = requests.post(APP_SCRIPT_URL,json={
+            'url': url
+            },timeout=3000)
+
+            print('file received')
+            print(response.status_code)
+            data = response.text
+            save_base64_to_file(data, save_path)
+            break
+        except Exception as e:
+            print(e)
+            continue
+    # with open(save_path, 'wb') as file:
+    #     file.write(response.content)
+    #     file.close()
+ 
+
+def transcribe_audio(audioList):
     file_path = f"audio{random.randint(0,100)}.mp3"
-    download_audio(file_url, file_path)
+    download_audio(audioList, file_path)
     print('audio downloaded')
     client = OpenAI()
+
+    print('transcribing audio')
     
     with open(file_path, "rb") as audio_file:
         transcription = client.audio.transcriptions.create(
@@ -90,13 +129,14 @@ def transcribe_audio(file_url):
 
 
 def get_transcript(videoId):
-    audi_file = get_audio_file(videoId)
+    audioList = get_audio_file(videoId)
+
     print('audio url created')
 
-    if not audi_file:
+    if not audioList:
         raise Exception("Audio file not found")
     
-    segments = transcribe_audio(audi_file).segments
+    segments = transcribe_audio(audioList).segments
     segments = [(round(segment.get('start'),1),round(segment.get('end'),1),segment.get('text')) for segment in segments if segment.get('text')]
 
     return  segments
