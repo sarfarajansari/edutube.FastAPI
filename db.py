@@ -1,7 +1,7 @@
 from pymongo import MongoClient
-
+import os
 def get_database()-> MongoClient:
-   CONNECTION_STRING =    "mongodb+srv://p:zMtpS9kUGUwKmppe@mydbcluster.8axgt8u.mongodb.net/"
+   CONNECTION_STRING =   os.getenv("MONGO")
    client = MongoClient(CONNECTION_STRING)
 
    return client['aitube']

@@ -8,14 +8,11 @@ from youtube_transcript_api import YouTubeTranscriptApi
 app = FastAPI()
 
 
-# Define the origins that should be allowed to make requests
 origins = [
     "http://localhost:3000",  # Example: Your frontend on localhost
     "https://sarfaraj.site",  # Example: Your production frontend
-    # Add more origins as needed
 ]
 
-# Add CORS middleware to the app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Allows specific origins
@@ -35,7 +32,7 @@ def html_content(videoId: str):
 
     return list(data)
 
-@app.get('/transcript/{videoId}')
+@app.get('/transcript/{videoId}') 
 def get_transcript(videoId:str):
     try:
         import requests
