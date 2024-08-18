@@ -7,6 +7,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import requests
 import os
 from dotenv import load_dotenv
+from transcript import get_transcript
 load_dotenv()
 API_URL = "https://www.googleapis.com/youtube/v3/"
 
@@ -18,7 +19,7 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
 
     api_key = os.getenv("YT_API_KEY")
 
-    print("API KEY", api_key,inputData.get("nextPageToken"))
+    print(inputData.get("nextPageToken"),search_query,max_results)
 
     url = f"{API_URL}search?part=snippet&type=video&maxResults={max_results}&q={search_query}&key={api_key}&order=viewCount&regionCode=IN"
 
@@ -32,13 +33,13 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
 
     videoItems = data.get("items") or []
 
-    print("Video Items", videoItems)
+    print("Video Items", len(videoItems))
 
     for item in videoItems:
         if item["id"].get("videoId"):
             try:
-                transcript = str(YouTubeTranscriptApi.get_transcript(
-                    item["id"].get("videoId")))
+                transcript = str(get_transcript(item["id"].get("videoId")))
+                    
                 
 
                 if transcript:
@@ -54,7 +55,7 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
                 continue
 
 
-        if len(result)> max_results:
+        if len(result)> 0:
             break
 
     if len(result) == 0:
@@ -74,9 +75,9 @@ def fetch_youtube_video(inputData,attempt=0) -> dict[str, str]:
     }
 
 
-def generateVideos(search_query: str, max_results: int = 1,nextPageToken:str=None,attempt=0) -> list[dict[str, str]]:
+def generateVideos(search_query: str, max_results: int = 15,nextPageToken:str=None,attempt=0) -> list[dict[str, str]]:
     data = fetch_youtube_video(
-        {"search_query": f"Educational video on {search_query}", "max_results": max_results,"nextPageToken": nextPageToken,"pageNumber":1})
+        {"search_query": search_query, "max_results": max_results,"nextPageToken": nextPageToken,"pageNumber":1})
     llm = ChatOpenAI(temperature=0.2, model="gpt-4o")
 
 
@@ -92,7 +93,7 @@ def generateVideos(search_query: str, max_results: int = 1,nextPageToken:str=Non
             item['concept'] = json.loads(res)
             if len(item['concept']) == 0:
                 continue
-            item['topic'] = search_query
+            item['query'] = search_query
             result.append(item)
         except:
             pass

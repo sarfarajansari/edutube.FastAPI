@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from db import db
 from generateContent import generateHtmlContent
 from generateVideo import generateVideos
-from youtube_transcript_api import YouTubeTranscriptApi
+from transcript import get_transcript
 app = FastAPI()
 
 
@@ -32,44 +32,10 @@ def html_content(videoId: str):
 
     return list(data)
 
-@app.get('/transcript/{videoId}') 
-def get_transcript(videoId:str):
+@app.get('/transcript/{videoId}')
+def get_transcript_api(videoId:str):
     try:
-        import requests
-        data = requests.post('https://tactiq-apps-prod.tactiq.io/transcript',
-                            json={"langCode": "en", "videoUrl": f"https://www.youtube.com/watch?v={videoId}"}, headers={
-                                'accept':
-                                '*/*',
-                                'accept-encoding':
-                                'gzip, deflate, br, zstd',
-                                'accept-language':
-                                'en-US,en;q=0.9',
-
-                                'content-type':
-                                'application/json',
-                                'origin':
-                                'https://tactiq.io',
-                                'priority':
-                                'u=1, i',
-                                'referer':
-                                'https://tactiq.io/',
-                                'sec-ch-ua':
-                                '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
-                                'sec-ch-ua-mobile':
-                                '?0',
-                                'sec-ch-ua-platform':
-                                "Windows",
-                                'sec-fetch-dest':
-                                'empty',
-                                'sec-fetch-mode':
-                                'cors',
-                                'sec-fetch-site':
-                                'same-site',
-                                'user-agent':
-                                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
-                            })
-
-        return data.json()
+        return get_transcript(videoId)
     except Exception as e:
         # print(e)
         return {"error": str(e)}
@@ -146,7 +112,7 @@ def generate_video(body:dict):
         if not subjectData:
             return HTTPException(status_code=400, detail="Invalid topic")
 
-        print("generating")
+        course_name = subjectData.get("name") or ""
 
         next_page_token_data = db["page_token"].find_one({"subject":subject})
 
@@ -154,8 +120,8 @@ def generate_video(body:dict):
             next_page_token = next_page_token_data['token']
         else:
             next_page_token=None
-
-        generatedData = generateVideos(subject,1,next_page_token)
+        query = f'"{subject}" AND "{course_name}" AND ("tutorial" OR "lesson" OR "lecture" OR "Explained" OR "one shot" OR "chapter" OR "learn")'
+        generatedData = generateVideos(query,4,next_page_token,course_name)
         if not generatedData:
             return HTTPException(status_code=400, detail="Rate limit exists, please try again later")
         
@@ -170,9 +136,21 @@ def generate_video(body:dict):
 
 
         db['page_token'].update_one({'subject':subject},{'$set':{'token':next_page_token}},True)
-        db["videos"].insert_many(videos)
 
-        videos = list(videos)
+        ids = [video['videoId'] for video in videos]
+        existing_videos = db["videos"].find({'videoId': {'$in': ids}}, {'videoId': 1})
+        existing_videos = [video['videoId'] for video in existing_videos]
+        
+        filtered_videos = [video for video in videos if video['videoId'] not in existing_videos]
+
+        for v in filtered_videos:
+            v['topic'] = subject
+            v['subject'] = course_name
+
+        db["videos"].insert_many(filtered_videos)
+            
+
+        videos = list(filtered_videos)
         for item in videos:
             if "_id" in item:
                 del item["_id"] 
