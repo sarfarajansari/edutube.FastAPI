@@ -4,3 +4,4 @@ pymongo
 python-dotenv
 langchain-openai
 youtube-transcript-api
+openai
